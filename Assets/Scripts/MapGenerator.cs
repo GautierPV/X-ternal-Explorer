@@ -6,7 +6,7 @@ using System.Threading;
 
 public class MapGenerator : MonoBehaviour
 {
-    [SerializeField] enum DrawMode { NoiseMap, ColorMap, Mesh, FalloffMap};
+    [SerializeField] enum DrawMode { NoiseMap, ColorMap, Mesh, FalloffMap, Object};
     [SerializeField] DrawMode drawMode;
 
     public Noise.NormalizeMode normalizeMode;
@@ -33,6 +33,9 @@ public class MapGenerator : MonoBehaviour
     [SerializeField] public bool autoUpdate;
     
     [SerializeField] TerrainType[] regions;
+
+    [SerializeField] GameObject[] rocks;
+    [SerializeField] GameObject[] trees;
 
     float[,] falloffMap;
     static MapGenerator instance;
@@ -84,6 +87,10 @@ public class MapGenerator : MonoBehaviour
         else if (drawMode == DrawMode.FalloffMap)
         {
             display.DrawTexture(TextureGenerator.TextureFromHeightMap(FalloffGenerator.GenerateFalloffMap(mapChunckSize)));
+        }
+        else if(drawMode == DrawMode.Object)
+        {
+            
         }
     }
 
@@ -151,6 +158,8 @@ public class MapGenerator : MonoBehaviour
         float[,] noiseMap = Noise.GenerateNoiseMap(mapChunckSize + 2, mapChunckSize + 2, seed, noiseScale, octaves, persistance, lacunarity, center + offset, normalizeMode);
 
         Color[] colorMap = new Color[mapChunckSize * mapChunckSize];
+
+        Dictionary<GameObject, List<Vector2>> prefabPos = new Dictionary<GameObject, List<Vector2>>();
         for (int y = 0; y < mapChunckSize; y++)
         {
             for (int x = 0; x < mapChunckSize; x++)
@@ -161,6 +170,7 @@ public class MapGenerator : MonoBehaviour
                 }
 
                 float currentHeight = noiseMap[x, y];
+
                 for (int i = 0; i < regions.Length; i++)
                 {
                     if(currentHeight >= regions[i].height)
@@ -175,7 +185,46 @@ public class MapGenerator : MonoBehaviour
             }
         }
 
-        return new MapData(noiseMap, colorMap);
+        prefabPos = GeneratePrefabPos(noiseMap);
+
+        return new MapData(noiseMap, colorMap, prefabPos);
+    }
+
+    Dictionary<GameObject, List<Vector2>> GeneratePrefabPos(float[,] noiseMap)
+    {
+        Dictionary<GameObject, List<Vector2>> prefabPos = new Dictionary<GameObject, List<Vector2>>();
+
+        for (int i = 0; i < rocks.Length; i++)
+        {
+            prefabPos.Add(rocks[i], new List<Vector2>());
+        }
+
+        for (int y = 5; y < mapChunckSize - 5; y+=5)
+        {
+            for (int x = 5; x < mapChunckSize - 5; x+=5)
+            {
+                System.Random prng = new System.Random();
+                float rand = (float)prng.NextDouble();
+                
+                float chanceTree = (float)(0.2 * (1.3 - noiseMap[x, y]));
+
+                int randPrefab = prng.Next(3);
+
+                if (rand < 0.75)
+                {
+                    if(0.75 < rand && rand <(0.75+chanceTree))
+                    {
+
+                    }
+                    else if (0.75 + chanceTree < rand)
+                    {
+                        prefabPos[rocks[randPrefab]].Add(new Vector2(x,y));
+                    }
+                }
+            }
+        }
+
+        return prefabPos;
     }
 
     private void OnValidate()
@@ -217,10 +266,12 @@ public struct MapData
 {
     public readonly float[,] heightMap;
     public readonly Color[] colorMap;
+    public readonly Dictionary<GameObject, List<Vector2>> prefabPos;
 
-    public MapData(float [,] heightMap, Color[] colorMap)
+    public MapData(float [,] heightMap, Color[] colorMap, Dictionary<GameObject, List<Vector2>> prefabPos)
     {
         this.heightMap = heightMap;
         this.colorMap = colorMap;
+        this.prefabPos = prefabPos;
     }
 }
