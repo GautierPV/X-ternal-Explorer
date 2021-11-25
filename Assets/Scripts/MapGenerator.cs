@@ -90,7 +90,7 @@ public class MapGenerator : MonoBehaviour
         }
         else if(drawMode == DrawMode.Object)
         {
-            
+            display.DrawObject(mapData, rocks);
         }
     }
 
@@ -159,7 +159,7 @@ public class MapGenerator : MonoBehaviour
 
         Color[] colorMap = new Color[mapChunckSize * mapChunckSize];
 
-        Dictionary<GameObject, List<Vector2>> prefabPos = new Dictionary<GameObject, List<Vector2>>();
+        Dictionary<GameObject, List<Vector3>> prefabPos = new Dictionary<GameObject, List<Vector3>>();
         for (int y = 0; y < mapChunckSize; y++)
         {
             for (int x = 0; x < mapChunckSize; x++)
@@ -190,35 +190,34 @@ public class MapGenerator : MonoBehaviour
         return new MapData(noiseMap, colorMap, prefabPos);
     }
 
-    Dictionary<GameObject, List<Vector2>> GeneratePrefabPos(float[,] noiseMap)
+    Dictionary<GameObject, List<Vector3>> GeneratePrefabPos(float[,] noiseMap)
     {
-        Dictionary<GameObject, List<Vector2>> prefabPos = new Dictionary<GameObject, List<Vector2>>();
+        Dictionary<GameObject, List<Vector3>> prefabPos = new Dictionary<GameObject, List<Vector3>>();
 
         for (int i = 0; i < rocks.Length; i++)
         {
-            prefabPos.Add(rocks[i], new List<Vector2>());
+            prefabPos.Add(rocks[i], new List<Vector3>());
         }
 
-        for (int y = 5; y < mapChunckSize - 5; y+=5)
+        for (int y = 5 - mapChunckSize / 2; y < mapChunckSize / 2 - 5; y+=5)
         {
-            for (int x = 5; x < mapChunckSize - 5; x+=5)
+            for (int x = 5 - mapChunckSize / 2; x < mapChunckSize / 2 - 5; x+=5)
             {
                 System.Random prng = new System.Random();
                 float rand = (float)prng.NextDouble();
                 
-                float chanceTree = (float)(0.2 * (1.3 - noiseMap[x, y]));
+                float chanceTree = (float)(0.2 * (1.3 - noiseMap[x + mapChunckSize / 2, y + mapChunckSize / 2]));
 
                 int randPrefab = prng.Next(3);
 
-                if (rand < 0.75)
+                if (rand > 0.75)
                 {
                     if(0.75 < rand && rand <(0.75+chanceTree))
                     {
-
                     }
                     else if (0.75 + chanceTree < rand)
                     {
-                        prefabPos[rocks[randPrefab]].Add(new Vector2(x,y));
+                        prefabPos[rocks[randPrefab]].Add(new Vector3(x * mapChunckSize/25, 0,y * mapChunckSize/25));
                     }
                 }
             }
@@ -266,9 +265,9 @@ public struct MapData
 {
     public readonly float[,] heightMap;
     public readonly Color[] colorMap;
-    public readonly Dictionary<GameObject, List<Vector2>> prefabPos;
+    public readonly Dictionary<GameObject, List<Vector3>> prefabPos;
 
-    public MapData(float [,] heightMap, Color[] colorMap, Dictionary<GameObject, List<Vector2>> prefabPos)
+    public MapData(float [,] heightMap, Color[] colorMap, Dictionary<GameObject, List<Vector3>> prefabPos)
     {
         this.heightMap = heightMap;
         this.colorMap = colorMap;

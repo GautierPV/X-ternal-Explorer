@@ -19,4 +19,17 @@ public class MapDisplay : MonoBehaviour
         meshFilter.sharedMesh = meshData.CreateMesh();
         meshRenderer.sharedMaterial.mainTexture = texture;
     }
+
+    public void DrawObject(MapData mapData, GameObject[] rocks)
+    {
+        for (int i = 0; i < rocks.Length; i++)
+        {
+            for (int j = 0; j < mapData.prefabPos[rocks[i]].Count; j++)
+            {
+                GameObject track = Instantiate(rocks[i]);
+                track.transform.SetParent(GameObject.Find("Mesh").transform, true);
+                track.transform.position = mapData.prefabPos[rocks[i]][j];
+            }
+        }
+    }
 }
