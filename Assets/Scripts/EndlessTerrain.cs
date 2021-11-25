@@ -83,6 +83,7 @@ public class EndlessTerrain : MonoBehaviour
         MeshRenderer meshRenderer;
         MeshFilter meshFilter;
         MeshCollider meshCollider;
+        BoxCollider Boxbounds;
 
         LODInfo[] detailsLevels;
         LODMesh[] lodMeshes;
@@ -104,6 +105,9 @@ public class EndlessTerrain : MonoBehaviour
             meshRenderer = meshObject.AddComponent<MeshRenderer>();
             meshFilter = meshObject.AddComponent<MeshFilter>();
             meshCollider = meshObject.AddComponent<MeshCollider>();
+            Boxbounds = meshObject.AddComponent<BoxCollider>();
+            Boxbounds.isTrigger=true;
+            Boxbounds.size=new Vector3(250, 50, 250);
             meshRenderer.material = material;
 
             meshObject.transform.position = positionV3 * scale;
